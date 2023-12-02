@@ -1,0 +1,63 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+ApogeoSpace	KEYWORD1
+
+APSNode	KEYWORD1
+NodeId	KEYWORD1
+NodeKey	KEYWORD1
+Packet	KEYWORD1
+Node 	KEYWORD1
+
+LoRa KEYWORD1
+Transmitter KEYWORD1
+Init KEYWORD1
+Transmit  KEYWORD1
+RFM98 KEYWORD1
+Register KEYWORD1
+OperatingMode KEYWORD1
+BW KEYWORD1
+CR KEYWORD1
+SF KEYWORD1
+HeaderMode KEYWORD1
+TransmitMode KEYWORD1
+CRCMode KEYWORD1
+SecureNode KEYWORD1
+Core KEYWORD1 KEYWORD1
+Singleton KEYWORD1 KEYWORD1
+AES_CMAC KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+Node	KEYWORD2
+Init	KEYWORD2
+Send	KEYWORD2
+Transmit   KEYWORD2
+IsTxDone  KEYWORD2
+WriteRegi ster KEYWORD2
+ReadRegis ter KEYWORD2
+Encrypt  KEYWORD2
+Decrypt  KEYWORD2
+BuildPack et KEYWORD2
+ExtractFr omPacket KEYWORD2
+AES_CMAC  KEYWORD2
+generateM AC KEYWORD2
+shiftLeft  KEYWORD2
+xor128  KEYWORD2
+padding  KEYWORD2
+
+######################################
+# Constants (LITERAL1)
+#######################################
+kDefaultFrequency LITERAL1
+EmptyTimestamp LITERAL1
+
+kDefault_RST_Pin LITERAL1
+kDefault_SS_Pin LITERAL1
+kDefault_D0_Pin LITERAL1
