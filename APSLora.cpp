@@ -167,7 +167,12 @@ bool RFM98::Transmit(const uint8_t* src, uint8_t length)
   interrupts();
 
   // Once FIFO is written, trigger the transmission
+  #if RH_COMPATIBILITY_ENABLED 
   WriteRegister(Register::PayloadLen, length + 4U);
+  #else
+  WriteRegister(Register::PayloadLen, length);
+  #endif // #if RH_COMPATIBILITY_ENABLED 
+
   WriteRegister(Register::Mode, static_cast<uint8_t>(OperatingMode::kTx));
 
   // Set DI0 to TX_DONE mode

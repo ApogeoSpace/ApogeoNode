@@ -38,7 +38,7 @@ namespace ApogeoSpace
 		 * @brief Default carrier frequency for LoRa transmissions, in Hz.
 		 * 
 		 */
-		constexpr uint32_t kDefaultFrequency{169425000};	// 169.425 Hz
+		constexpr uint32_t kDefaultFrequency{169425000};	// 169.425 MHz
 
 		/**
 		 * @brief Prototype class for a generic LoRa transmitter.
