@@ -37,7 +37,8 @@ Crypto::OpStatus Crypto::SecureNode::Encrypt(
     Crypto::AES_CMAC cmac(aes256);
     uint8_t mac[16];
 
-    uint8_t data_raw[sizeof(Header_t) * sizeof(Payload_t)]{0x0};
+    uint8_t data_raw[sizeof(Header_t) + sizeof(Payload_t)];
+    memset(data_raw, 0U, sizeof(data_raw));
 
     memcpy(data_raw, Id, sizeof(NodeId_t));
     memcpy(data_raw + sizeof(NodeId_t), now, sizeof(Timestamp_t));
@@ -52,7 +53,7 @@ Crypto::OpStatus Crypto::SecureNode::Encrypt(
     ctraes256.setKey(Key, ctraes256.keySize());
     ctraes256.setIV(mac, 16);
     ctraes256.setCounterSize(8);
-    ctraes256.encrypt(encrypted_payload, payload, 10);
+    ctraes256.encrypt(encrypted_payload, payload, sizeof(Payload_t));
 
     return OpStatus::kSuccess;
 }
@@ -82,7 +83,7 @@ Crypto::OpStatus Crypto::SecureNode::Decrypt(
     // | ID    | Time  |               ... |
     // | | | | | | | | | | |           ... |
     // 0       4       8                  18
-    uint8_t data_raw[sizeof(Header_t) * sizeof(Payload_t)]{0x0};
+    uint8_t data_raw[sizeof(Header_t) + sizeof(Payload_t)]{0x0};
 
     memcpy(data_raw, Id, sizeof(NodeId_t));
     memcpy(data_raw + sizeof(NodeId_t), now, sizeof(Timestamp_t));
@@ -102,8 +103,8 @@ Crypto::OpStatus Crypto::SecureNode::BuildPacket(
     const Payload_t &payload,
     Packet_t &packet_to_build)
 {
-    Tag_t tag{0x0};
-    Payload_t encrypted_payload{0x0};
+    Tag_t tag{};
+    Payload_t encrypted_payload{};
 
     OpStatus status = Encrypt(now, payload, tag, encrypted_payload);
     if (status != OpStatus::kSuccess)

@@ -50,7 +50,6 @@ namespace ApogeoSpace
         using Payload_t = uint8_t[10];
         using Tag_t = uint8_t[8];
 
-        using Packet_t = uint8_t[sizeof(PVN_t) + sizeof(Header_t) + 1 + sizeof(Payload_t) + sizeof(Tag_t)];
         //static_assert(sizeof(Packet_t) == 30U);
 
         struct __attribute__((packed)) PacketStruct_t
@@ -63,6 +62,8 @@ namespace ApogeoSpace
             Tag_t Tag;
         };
 
+        using Packet_t = uint8_t[sizeof(PacketStruct_t)];
+        
         /**
          * @brief Exit status for the cryptography operations
          *

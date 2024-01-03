@@ -115,6 +115,7 @@ namespace ApogeoSpace
                 static_assert(sizeof(T) <= sizeof(Crypto::Payload_t),
                 "The value you're trying to send won't fit in a single payload!");
                 Crypto::Payload_t payload;
+                memset(payload, static_cast<uint8_t>(0U), sizeof(payload));
                 memcpy(payload, &value, sizeof(T));
                 return Send(payload, now);
             }
@@ -136,9 +137,13 @@ namespace ApogeoSpace
                     return false;
                 }
                 Crypto::Payload_t payload;
+                memset(payload, static_cast<uint8_t>(0U), sizeof(payload));
                 memcpy(payload, src, len);
                 return Send(payload, now);
             }
+
+             LoRa::RFM98 & GetRadio()
+             {return Radio;}
 
         private:
             class Crypto::SecureNode SecureNode;
