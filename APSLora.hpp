@@ -50,6 +50,10 @@ namespace ApogeoSpace
 		class Transmitter : public Core::Singleton
 		{
 		public:
+			enum class Mode : uint8_t{
+				TxOnly = 0x00,
+				RxOnly = 0x01
+			};
 			/**
 			 * @brief Construct a new Transmitter object.
 			 */
@@ -62,7 +66,7 @@ namespace ApogeoSpace
 			 * @return true Initialization completed successfully.
 			 * @return false An error occured during initialization.
 			 */
-			virtual bool Init(uint32_t frequency = 169425000) = 0;
+			virtual bool Init(uint32_t frequency = 169425000, Mode currentMode = Mode::TxOnly ) = 0;
 
 			/**
 			 * @brief Transmit a packet.
@@ -73,6 +77,16 @@ namespace ApogeoSpace
 			 * @return false Invalid data or error during transmission.
 			 */
 			virtual bool Transmit(const uint8_t *src, uint8_t length);
+
+			/**
+			 * @brief Transmit a packet.
+			 *
+			 * @param dest [out] output data just read
+			 * @param length number of received bytes
+			 * @return true Reception completed successfully.
+			 * @return false Invalid data or error during reception.
+			 */
+			virtual bool Receive(uint8_t *dest, uint8_t length, int16_t lastRssi, int8_t lastSnr);
 
 			/**
 			 * @brief Check if transmission has completed
@@ -99,13 +113,16 @@ namespace ApogeoSpace
 			 * @param d0 pin connected to DIO0 signal. Used for TX_READY (Cleared when leaving Tx)
 			 */
 			RFM98(uint8_t rst = kDefault_RST_Pin, uint8_t ss = kDefault_SS_Pin, uint8_t d0 = kDefault_D0_Pin);
-			virtual bool Init(uint32_t frequency = kDefaultFrequency) override;
+			virtual bool Init(uint32_t frequency = kDefaultFrequency, Mode currentMode = Mode::TxOnly) override;
 			virtual bool Transmit(const uint8_t *src, uint8_t length) override;
+			virtual bool Receive(uint8_t* dest, uint8_t length, int16_t lastRssi, int8_t lastSnr) override;
+
 			virtual bool IsTxDone() override;
 
 			static constexpr uint8_t kDefault_RST_Pin{5U};
 			static constexpr uint8_t kDefault_SS_Pin{7U};
 			static constexpr uint8_t kDefault_D0_Pin{2U};
+
 
 		private:
 			/**
@@ -114,24 +131,30 @@ namespace ApogeoSpace
 			 */
 			enum class Register : uint8_t
 			{
-				RW = 0x00,				/** FIFO read/write access register */
-				Mode = 0x01,			/** Mode register */
-				FrequencyMsb = 0x06,	/** Frequency MSB register */
-				FrequencyMid = 0x07,	/** Frequency middle byte register */
-				FrequencyLsb = 0x08,	/** Frequency LSB register */
-				PAConfiguration = 0x09, /** PA Configuration register */
-				SPIFifoAddress = 0x0D,	/** SPI FIFO buffer pointer register */
-				TxFifoAddress = 0x0E,	/** Tx FIFO pointer register */
-				RxFifoAddress = 0x0F,	/** Rx FIFO pointer register */
-				ModemCfg1 = 0x1D,		/** Modem configuration 1 register */
-				ModemCfg2 = 0x1E,		/** Modem configuration 2 register */
-				PreambleLenMSB = 0x20,	/** Preamble length MSB register */
-				PreambleLenLSB = 0x21,	/** Preamble length LSB register */
-				PayloadLen = 0x22,		/** Payload length register */
-				ModemCfg3 = 0x26,		/** Modem configuration 3 register */
-				DI0_1 = 0x40,			/** DI0 mapping configuration 1 register */
-				DI0_2 = 0x41,			/** DI0 mapping configuration 2 register */
-				PADac = 0x4D,			/** PA boost register */
+				RW = 0x00,					/** FIFO read/write access register */
+				Mode = 0x01,				/** Mode register */
+				FrequencyMsb = 0x06,		/** Frequency MSB register */
+				FrequencyMid = 0x07,		/** Frequency middle byte register */
+				FrequencyLsb = 0x08,		/** Frequency LSB register */
+				PAConfiguration = 0x09, 	/** PA Configuration register */
+				SPIFifoAddress = 0x0D,		/** SPI FIFO buffer pointer register */
+				TxFifoAddress = 0x0E,		/** Tx FIFO pointer register */
+				RxFifoAddress = 0x0F,		/** Rx FIFO pointer register */
+				FifoRxCurrentAddr = 0x10, 	/** Start address (in data buffer) of last packet received */
+				IrqFlags = 0x12,			/** Interrupt request flags */
+				RxNbBytes = 0x13,			/** Number of payload bytes of latest packet received */
+				PktSnrValue = 0x19,			/** Estimation of SNR on last packet received */
+				PktRssiValue = 0x1A,		/** RSSI of the latest packet received (dBm) */
+				ModemCfg1 = 0x1D,			/** Modem configuration 1 register */
+				ModemCfg2 = 0x1E,			/** Modem configuration 2 register */
+				SymbTimeout = 0x1F,			/** Symbol timeout register */ 
+				PreambleLenMSB = 0x20,		/** Preamble length MSB register */
+				PreambleLenLSB = 0x21,		/** Preamble length LSB register */
+				PayloadLen = 0x22,			/** Payload length register */
+				ModemCfg3 = 0x26,			/** Modem configuration 3 register */
+				DI0_1 = 0x40,				/** DI0 mapping configuration 1 register */
+				DI0_2 = 0x41,				/** DI0 mapping configuration 2 register */
+				PADac = 0x4D,				/** PA boost register */
 				SimpleWrite = 0x80,
 			};
 
@@ -213,6 +236,16 @@ namespace ApogeoSpace
 			 * @return uint8_t value read
 			 */
 			uint8_t ReadRegister(const Register address) const;
+			
+			/**
+			 * @brief Read a number of consecutive registers from the SPI device using burst read mode
+			 *
+			 * @param address Register number of the first register
+			 * @param dest Array to write the register values to. Must be at least len bytes
+			 * @param len Number of bytes to read
+			 * @return uint8_t status
+			*/
+			uint8_t ReadBurst(const Register address, uint8_t * dest, uint8_t len) const;
 
 			uint8_t RST_Pin;
 			uint8_t SS_Pin;

@@ -38,7 +38,7 @@ RFM98::RFM98(uint8_t rst, uint8_t ss, uint8_t d0) : RST_Pin{rst}, SS_Pin{ss}, D0
   digitalWrite(SS_Pin, HIGH);
 }
 
-bool RFM98::Init(uint32_t frequency)
+bool RFM98::Init(uint32_t frequency, Mode currentMode)
 {
   SPI.begin();
   delay(100);
@@ -50,7 +50,7 @@ bool RFM98::Init(uint32_t frequency)
   delay(50);
 
   // Set power mode to sleep and operating mode to Lora
-  WriteRegister(Register::Mode, static_cast<uint8_t>(OperatingMode::kSleep) | static_cast<uint8_t>(OperatingMode::kLora));
+  WriteRegister(Register::Mode, static_cast<uint8_t>(OperatingMode::kSleep) | static_cast<uint8_t>(OperatingMode::kLora), true);
   // Set TX FIFO address to 0x0
   WriteRegister(Register::TxFifoAddress, 0x00); // Punto a 0 il registro FiFo TX
   // Set RX FIFO address to 0x0
@@ -89,6 +89,8 @@ bool RFM98::Init(uint32_t frequency)
   WriteRegister(Register::PreambleLenMSB, 0x00);
   WriteRegister(Register::PreambleLenLSB, 0x08);
 
+  WriteRegister(Register::SymbTimeout, 0x64);
+
   // Set frequency
   uint32_t freqV = static_cast<double>(frequency) / k_F_STEP;
   uint8_t freq_msb = (freqV >> 16) & 0xFF;
@@ -119,10 +121,26 @@ bool RFM98::Init(uint32_t frequency)
   }
 
   // Set DIO0 in TXDone mode
-  if(not WriteRegister(Register::DI0_1, 0x40, true))
-  {
-    return false;
+  if(currentMode == Mode::TxOnly){
+    if(not WriteRegister(Register::DI0_1, 0x40, true))
+    {
+      return false;
+    }
   }
+  else {
+    if(not WriteRegister(Register::DI0_1, 0x00, true))
+    {
+      return false;
+    }
+  }
+
+  if(currentMode == Mode::RxOnly){
+    if(not WriteRegister(Register::Mode, 0x05)) // rx continuous mode
+    {
+      return false;
+    }
+  }
+
   Initialized = true;
   return true;
 }
@@ -137,7 +155,6 @@ bool RFM98::Transmit(const uint8_t* src, uint8_t length)
   {
     return false;
   }
-  uint8_t status = 0;
   WriteRegister(Register::Mode, static_cast<uint8_t>(OperatingMode::kStandby));
   WriteRegister(Register::SPIFifoAddress, 0x00);
 
@@ -181,6 +198,38 @@ bool RFM98::Transmit(const uint8_t* src, uint8_t length)
   return true;
 }
 
+bool RFM98::Receive(uint8_t* dest, uint8_t length, int16_t lastRssi, int8_t lastSnr)
+{
+  uint8_t irq_flags = ReadRegister(Register::IrqFlags);
+
+  if (not Initialized)
+  {
+    return false;
+  }
+  if(not dest or not length)
+  {
+    return false;
+  }
+
+  if(irq_flags & 0x40){ // if interrupt flag is RxDone
+    length = ReadRegister(Register::RxNbBytes);
+
+    // Reset the fifo read ptr to the beginning of the packet
+    WriteRegister(Register::SPIFifoAddress, ReadRegister(Register::FifoRxCurrentAddr));
+
+    ReadBurst(Register::RW, dest, length);
+
+	  WriteRegister(Register::IrqFlags, 0xff); // Clear all IRQ flags
+
+    lastSnr = (int8_t)ReadRegister(Register::PktSnrValue) / 4; //TODO: check this value
+    lastRssi = ReadRegister(Register::PktRssiValue)-137; //TODO: check this value
+    return true;
+  } 
+  else {
+    return false;
+  }
+}
+
 bool RFM98::IsTxDone()
 {
   return digitalRead(D0_Pin) == LOW;
@@ -218,3 +267,20 @@ uint8_t RFM98::ReadRegister(const Register address) const
   interrupts();
   return value;
 }
+
+
+uint8_t RFM98::ReadBurst(const Register address, uint8_t * dest, uint8_t len) const
+{
+  uint8_t status = 0;
+  uint8_t reg_addr = static_cast<uint8_t>(address);
+  noInterrupts();
+  digitalWrite(SS_Pin, LOW);
+  status = SPI.transfer(reg_addr);
+  while (len--){
+	  *dest++ = SPI.transfer(0);
+  }
+  digitalWrite(SS_Pin, HIGH);
+  interrupts();
+  return status;
+}
+
