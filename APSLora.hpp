@@ -245,7 +245,7 @@ namespace ApogeoSpace
 			 * @param len Number of bytes to read
 			 * @return uint8_t status
 			*/
-			uint8_t ReadBurst(const Register address, uint8_t * dest, uint8_t * len) const;
+			uint8_t ReadBurst(const Register address, uint8_t * dest, uint8_t len) const;
 
 			uint8_t RST_Pin;
 			uint8_t SS_Pin;

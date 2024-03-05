@@ -69,7 +69,6 @@ bool RFM98::Init(uint32_t frequency, Mode currentMode, bool skip)
 
   if (not WriteRegister(Register::ModemCfg1, tmp, true))
   {
-    Serial.println("\nError ModemCfg1");
     return false;
   }
 
@@ -80,14 +79,12 @@ bool RFM98::Init(uint32_t frequency, Mode currentMode, bool skip)
     static_cast<uint8_t>(CRCMode::kOn);
   if (not WriteRegister(Register::ModemCfg2, tmp, true))
   {
-    Serial.println("\nError ModemCfg2");
     return false;
   }
 
   // Used for static node, LNA gains set by register
   if (not WriteRegister(Register::ModemCfg3, 0x00, true))
   {
-    Serial.println("\nError ModemCfg3");
     return false;
   }
 
@@ -105,17 +102,14 @@ bool RFM98::Init(uint32_t frequency, Mode currentMode, bool skip)
 
   if (not WriteRegister(Register::FrequencyMsb, freq_msb, true))
   {
-    Serial.println("\nError FrequencyMsb");
     return false;
   }
   if (not WriteRegister(Register::FrequencyMid, freq_mid, true))
   {
-    Serial.println("\nError FrequencyMid"); 
     return false;
   }
   if (not WriteRegister(Register::FrequencyLsb, freq_lsb, true))
   {
-    Serial.println("\nError FrequencyLsb"); 
     return false;
   }
   
@@ -213,12 +207,10 @@ bool RFM98::Receive(uint8_t* dest, uint8_t * length, int16_t *lastRssi, int8_t *
 
   if (not Initialized)
   {
-    Serial.println("\nNot Initialized");
     return false;
   }
   if(not dest)
   {
-    Serial.println("\nNo dest buff");
     return false;
   }
 
@@ -228,7 +220,7 @@ bool RFM98::Receive(uint8_t* dest, uint8_t * length, int16_t *lastRssi, int8_t *
     // Reset the fifo read ptr to the beginning of the packet
     WriteRegister(Register::SPIFifoAddress, ReadRegister(Register::FifoRxCurrentAddr));
 
-    ReadBurst(Register::RW, dest, length);
+    ReadBurst(Register::RW, dest, *length);
 
 	  WriteRegister(Register::IrqFlags, 0xff); // Clear all IRQ flags
 
@@ -237,7 +229,6 @@ bool RFM98::Receive(uint8_t* dest, uint8_t * length, int16_t *lastRssi, int8_t *
     return true;
   } 
   else {
-    Serial.println("no RxDone");
     return false;
   }
 }
@@ -285,7 +276,7 @@ uint8_t RFM98::ReadRegister(const Register address) const
 }
 
 
-uint8_t RFM98::ReadBurst(const Register address, uint8_t * dest, uint8_t * len) const
+uint8_t RFM98::ReadBurst(const Register address, uint8_t * dest, uint8_t len) const
 {
   uint8_t status = 0;
   uint8_t reg_addr = static_cast<uint8_t>(address);
@@ -294,7 +285,7 @@ uint8_t RFM98::ReadBurst(const Register address, uint8_t * dest, uint8_t * len) 
   digitalWrite(SS_Pin, LOW);
   status = SPI.transfer(reg_addr);
  
-  while ((*len)--){
+  while (len--){
 	  *dest++ = SPI.transfer(0);
   }
 
