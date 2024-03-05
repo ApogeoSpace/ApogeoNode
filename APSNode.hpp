@@ -73,7 +73,7 @@ namespace ApogeoSpace
              */
             bool Init(uint32_t frequency = LoRa::kDefaultFrequency)
             {
-                return Radio.Init(frequency);
+                return Radio.Init(frequency, LoRa::Transmitter::Mode::TxOnly, false);
             }
 
             /**

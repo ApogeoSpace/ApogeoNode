@@ -60,7 +60,7 @@ bool RFM98::Init(uint32_t frequency, Mode currentMode, bool skip)
   // Put module to standby
   WriteRegister(Register::Mode, static_cast<uint8_t>(OperatingMode::kStandby));
 
-  // Set bandwidth to 41.7 kHz, CR to 6 bit, header mode to explicit
+  // Set bandwidth to 41.7 kHz, CR to 4/6, header mode to explicit
   uint8_t tmp{
     static_cast<uint8_t>(BW::k41_7kHz) |
     static_cast<uint8_t>(CR::k6) |
