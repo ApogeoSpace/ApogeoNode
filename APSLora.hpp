@@ -66,7 +66,7 @@ namespace ApogeoSpace
 			 * @return true Initialization completed successfully.
 			 * @return false An error occured during initialization.
 			 */
-			virtual bool Init(uint32_t frequency = 169425000, Mode currentMode = Mode::TxOnly ) = 0;
+			virtual bool Init(uint32_t frequency = 169425000, Mode currentMode = Mode::TxOnly, bool skip = true ) = 0;
 
 			/**
 			 * @brief Transmit a packet.
@@ -86,7 +86,7 @@ namespace ApogeoSpace
 			 * @return true Reception completed successfully.
 			 * @return false Invalid data or error during reception.
 			 */
-			virtual bool Receive(uint8_t *dest, uint8_t length, int16_t lastRssi, int8_t lastSnr);
+			virtual bool Receive(uint8_t *dest, uint8_t * length, int16_t * lastRssi, int8_t * lastSnr);
 
 			/**
 			 * @brief Check if transmission has completed
@@ -113,9 +113,9 @@ namespace ApogeoSpace
 			 * @param d0 pin connected to DIO0 signal. Used for TX_READY (Cleared when leaving Tx)
 			 */
 			RFM98(uint8_t rst = kDefault_RST_Pin, uint8_t ss = kDefault_SS_Pin, uint8_t d0 = kDefault_D0_Pin);
-			virtual bool Init(uint32_t frequency = kDefaultFrequency, Mode currentMode = Mode::TxOnly) override;
+			virtual bool Init(uint32_t frequency = kDefaultFrequency, Mode currentMode = Mode::TxOnly, bool skip = true) override;
 			virtual bool Transmit(const uint8_t *src, uint8_t length) override;
-			virtual bool Receive(uint8_t* dest, uint8_t length, int16_t lastRssi, int8_t lastSnr) override;
+			virtual bool Receive(uint8_t* dest, uint8_t * length, int16_t * lastRssi, int8_t * lastSnr) override;
 
 			virtual bool IsTxDone() override;
 
@@ -245,7 +245,7 @@ namespace ApogeoSpace
 			 * @param len Number of bytes to read
 			 * @return uint8_t status
 			*/
-			uint8_t ReadBurst(const Register address, uint8_t * dest, uint8_t len) const;
+			uint8_t ReadBurst(const Register address, uint8_t * dest, uint8_t * len) const;
 
 			uint8_t RST_Pin;
 			uint8_t SS_Pin;
