@@ -42,12 +42,14 @@ void setup()
     Serial.begin(9600);
 
     // Initialize the hardware of the node.
+    Serial.println("Init radio...");
     if (not node.Init())
     {
-        Serial.println("Initialization failed!");
+        Serial.println("failed! Please check your wiring and pin definition.");
         while (1)
             ;
     }
+    Serial.println("ok!");
 }
 
 void loop()
