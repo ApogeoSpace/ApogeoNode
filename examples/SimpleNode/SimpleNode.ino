@@ -34,7 +34,12 @@ const NodeKey key{
     0x34, 0xAD, 0xB5, 0x5E, 0x4B, 0x6A, 0x79, 0x4D,
     0x91, 0x79, 0xA1, 0xFE, 0x2F, 0x0A, 0x00, 0xB6};
 
-// Create a node with the above credentials.
+/** Create a node with the above credentials.
+ * NOTE: if your shield configuration differs from the default one specified in the README, 
+ * you should change the instantiation of the following object to include pin definitions that reflect
+ * your actual configuration.
+ * For more information, please refer to "Configuring your Apogeo LoRa Shield" in the README");
+ */
 APSNode node(id, key);
 
 void setup()
@@ -45,7 +50,8 @@ void setup()
     Serial.println("Init radio...");
     if (not node.Init())
     {
-        Serial.println("failed! Please check your wiring and pin definition.");
+        Serial.println("failed! Please check your wiring and shield configuration.");
+        Serial.println("For more information, please refer to \"Configuring your Apogeo LoRa Shield\" in the README");
         while (1)
             ;
     }

@@ -120,8 +120,8 @@ namespace ApogeoSpace
 			virtual bool IsTxDone() override;
 
 			static constexpr uint8_t kDefault_RST_Pin{5U};
-			static constexpr uint8_t kDefault_SS_Pin{7U};
-			static constexpr uint8_t kDefault_D0_Pin{2U};
+			static constexpr uint8_t kDefault_SS_Pin{6U};
+			static constexpr uint8_t kDefault_D0_Pin{3U};
 
 
 		private:

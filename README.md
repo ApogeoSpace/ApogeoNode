@@ -5,6 +5,14 @@ more in-depth functions to e.g. use the cryptographic layer with different conne
 for custom board with different transmitters.
 
 ## Installation
+
+### Requirements
+To correctly use this library, the following support libraries must also be installed:
+- [Crypto](https://rweather.github.io/arduinolibs/crypto.html) (0.4.0) by Rhys Weatherley.
+
+Unless stated otherwise, these libraries can be found in the Arduino IDE library manager.
+
+### Manual installation
 To install this library, just place this entire folder as a subfolder in your
 Arduino/libraries folder. You usually find the *libraries* folder in the sketch folder.
 
@@ -28,12 +36,13 @@ When installed, this library should look like:
 >
 > \<Arduino Sketches\>/libraries/ApsNode/readme.md   (this file)
 
+--------------------------------------------------------------------------------
+
 ## Basic Usage
 
 Please refer to the **examples** folder for more information on how to use this library.
 At a quick glance, here's how you can send data with your credentials.
 The same code is found under examples/SimpleNode
-
 
 ```cpp
 #include "APSNode.hpp"
@@ -86,12 +95,36 @@ void loop()
 }
 ```
 
-## Requirements
---------------------------------------------------------------------------------
-To correctly use this library, the following support libraries must also be installed:
-- [Crypto](https://rweather.github.io/arduinolibs/crypto.html) (0.4.0) by Rhys Weatherley.
+### Configuring your Apogeo LoRa Shield
 
-Unless stated otherwise, these libraries can be found in the Arduino IDE library manager.
+If you received an Arduino 169 MHz LoRa Shield from us, or built one using the design files freely retrievable from https://github.com/ApogeoSpace/ArduinoLoRaShield, you might have a different configuration of the wiring pins (RST, SS, D0) than the ones configured by default within the library.
+
+The default configuration for the current version of this library is:
+| Signal | Pin |
+| --- | --- |
+| D0 | 3 |
+| RST | 5 |
+| SS | 6 |
+
+
+If that's different from the one present on the hardware you're using, then simply make sure to change the creation of a **APSNode** object to include the updated configuration.
+For example, if your configuration differs from the one above in the following way:
+| Signal | Pin |
+| --- | --- |
+| D0 | **2** |
+| RST | 5 |
+| SS | **10** |
+
+Then you'd need to instantiate the APSNode object in the following way:
+
+```c++
+//                         RST     SS      D0
+APSNode node(id, key,       5,     10,     2);
+```
+
+
+--------------------------------------------------------------------------------
+
 
 ### APSCrypto - Cryptography Library for Apogeo Space Network
 This library is to be used on ground nodes that wish to upload data to the Apogeo Space PiCO network.
