@@ -122,6 +122,99 @@ Then you'd need to instantiate the APSNode object in the following way:
 APSNode node(id, key,       5,     10,     2);
 ```
 
+### Sending data
+
+The library provides the `::Send`, `::SendString` and `::SendStream` APIs to transmit data via LoRa, which hide lower level details when dealing with some common types of variables. 
+
+#### Sending `Payload` or generic objects with `::Send`
+
+The `::Send` function can deal with either `Payload` variables or any non-pointer type, as long as its size does not exceed the allowable length of the payload.
+
+```c++
+
+/* When applicable, using basic types with ::Send instead of converting them to a Payload type is more convenient
+    and user-friendly.
+*/
+float myFloat;
+// ... process myFloat
+node.Send(myFloat);
+
+// TinyStruct is a POD with size <= sizeof(Payload)
+TinyStruct tinys;
+// ... process tinys
+node.Send(tinys);
+
+/* Note that types with size > sizeof(Payload) are rejected at compile time */
+struct BigStruct
+{
+    int buff[20];
+};
+
+BigStruct bigs{};
+
+// Suppose sizeof(Payload) < 20 * sizeof(int)
+node.Send(bigs); // <--- will not compile! "error: static assertion failed: The value you're trying to send won't fit in a single payload!"
+
+/* When using Payload variables, the user must deal with the "low-level" byte nature of that payload, 
+    so using memcpy or other serialization techniques can become necessary to e.g. send a non uint8_t type 
+    by copying it into a Payload
+*/
+int myInt;
+// ... process myInt
+Payload pl{};
+memcpy(pl, myInt, sizeof(myInt));
+node.Send(pl);
+
+```
+#### Sending raw memory with `::SendStream`
+
+By design, `::Send` cannot be used to deal with pointers. If you have a pointer to an area of memory and want to send its content, you can use `::SendStream` instead, by passing the pointer itself and the amount of bytes you want to copy over to the payload.
+
+```c++
+
+uint8_t* ptr = new uint8_t[10]{};
+
+// ... process ptr
+
+node.SendStream(ptr, 10);
+
+```
+
+Note that this is still subjected to the limitation of the Payload size!
+
+```c++
+
+uint8_t* ptr = new uint8_t[20]{};
+
+// ... process ptr
+
+// Suppose Payload has max size 10
+
+node.SendStream(ptr, 20);   // --> will return false and not transmit anything
+
+```
+
+#### Sending C-style strings and string literals with `::SendString`
+
+Sending strings is **not** particularly recommended, however you can still do it by means of `::SendString`. This function deals with **NULL-terminated** strings and string literals, and builds a Payload by copying in character by character.
+
+```c++
+
+const char * str1 {"Hello"};
+
+// Setting false as the second argument (auto_trim) inhibits transmission in case the string is longer than the Payload size
+//  and needs to be trimmed down. 
+node.SendString(str1, false);
+
+const char * str2 {"Hello beautiful world!"};
+
+// Suppose the Payload max. size is 10 bytes. Then the following function will fail as it cannot send the whole string + its terminator
+node.SendString(str2, false);
+
+// In case you do not care about only sending a part of it, you can ask the function to "trim down" the string 
+// !!! Calling this will not guarantee the presence of a NULL terminator in the final payload!!! Use it only if you know what you're doing.
+node.SendString(str2, true);    // --> Will send "Hello beau" _without_ NULL terminator!!
+```
 
 --------------------------------------------------------------------------------
 

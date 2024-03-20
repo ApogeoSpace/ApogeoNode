@@ -1,2 +1,5 @@
 .vscode
 *.map
+/docs/html/*
+/docs/latex/*
+/docs/rtf/*
