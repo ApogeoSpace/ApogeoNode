@@ -22,6 +22,10 @@
 #include <APSLora.hpp>
 #include <SPI.h>
 
+#ifndef DEBUG_PRINT_RW_REG
+#define DEBUG_PRINT_RW_REG 0
+#endif
+
 using namespace ApogeoSpace::LoRa;
 
 // The crystal oscillator frequency of the module
@@ -52,7 +56,7 @@ bool RFM98::Init(uint32_t frequency, Mode currentMode, bool skip)
   delay(50);
 
   // Set power mode to sleep and operating mode to Lora
-  WriteRegister(Register::Mode, static_cast<uint8_t>(OperatingMode::kSleep) | static_cast<uint8_t>(OperatingMode::kLora), true);
+  WriteRegister(Register::Mode, static_cast<uint8_t>(OperatingMode::kSleep) | static_cast<uint8_t>(LongRangeMode::kLora), true);
   // Set TX FIFO address to 0x0
   WriteRegister(Register::TxFifoAddress, 0x00); // Punto a 0 il registro FiFo TX
   // Set RX FIFO address to 0x0
@@ -243,14 +247,19 @@ bool RFM98::WriteRegister(const Register address, const uint8_t value, const boo
   uint8_t reg_addr = static_cast<uint8_t>(address);
   // Enable write bit
   reg_addr |= 0x80;
-  // noInterrupts();
+
   SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE0));
   digitalWrite(SS_Pin, LOW);
   SPI.transfer(reg_addr);
   SPI.transfer(value);
   digitalWrite(SS_Pin, HIGH);
   SPI.endTransaction();
-  // interrupts();
+
+#if DEBUG_PRINT_RW_REG
+  Serial.print(value, HEX);
+  Serial.print(" ---> ");
+  Serial.println(static_cast<uint8_t>(address), HEX);
+#endif
 
   if(not verify)
   {
@@ -263,7 +272,7 @@ bool RFM98::WriteRegister(const Register address, const uint8_t value, const boo
 uint8_t RFM98::ReadRegister(const Register address) const
 {
   uint8_t reg_addr = static_cast<uint8_t>(address);
-  // noInterrupts();
+
   SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE0));
   digitalWrite(SS_Pin, LOW);
   SPI.transfer(reg_addr);
@@ -271,7 +280,13 @@ uint8_t RFM98::ReadRegister(const Register address) const
   uint8_t value = SPI.transfer(0x01);
   digitalWrite(SS_Pin, HIGH);
   SPI.endTransaction();
-  // interrupts();
+
+#if DEBUG_PRINT_RW_REG
+  Serial.print(value, HEX);
+  Serial.print(" <--- ");
+  Serial.println(static_cast<uint8_t>(address), HEX);
+#endif 
+
   return value;
 }
 
@@ -295,3 +310,243 @@ uint8_t RFM98::ReadBurst(const Register address, uint8_t * dest, uint8_t len) co
   return status;
 }
 
+///////////////////////////////
+// OPERATING MODE GET/SET
+///////////////////////////////
+
+template<>
+bool RFM98::isvalid(const RFM98::OperatingMode mode) const
+{
+  switch(mode)
+  {
+    case RFM98::OperatingMode::kSleep:
+    case RFM98::OperatingMode::kStandby:
+    case RFM98::OperatingMode::kFS_Tx:
+    case RFM98::OperatingMode::kTx:
+    case RFM98::OperatingMode::kFS_Rx:
+    case RFM98::OperatingMode::kRxContinuous:
+      return true;
+    default:
+      return false;
+  }
+}
+
+RFM98::OperatingMode RFM98::GetOperatingMode() const
+{
+  return GetParam<OperatingMode, Register::Mode, 0x07>();
+}
+
+bool RFM98::SetOperatingMode(const OperatingMode mode)
+{
+  return SetParam<OperatingMode, Register::Mode, 0x07>(mode);
+}
+
+///////////////////////////////
+// BANDWIDTH GET/SET
+///////////////////////////////
+
+template<>
+bool RFM98::isvalid(const RFM98::BW mode) const
+{
+  switch(mode)
+  {
+    case RFM98::BW::k7_8kHz:
+    case RFM98::BW::k10_4kHz:
+    case RFM98::BW::k15_6kHz:
+    case RFM98::BW::k20_8kHz:
+    case RFM98::BW::k31_25kHz:
+    case RFM98::BW::k41_7kHz:
+    case RFM98::BW::k62_5kHz:
+    case RFM98::BW::k125kHz:
+    case RFM98::BW::k250kHz:
+    case RFM98::BW::k500kHz:
+      return true;
+    default:
+      return false;
+  }
+}
+
+RFM98::BW RFM98::GetBW() const
+{
+  return GetParam<BW, Register::ModemCfg1, 0xF0>();
+}
+
+bool RFM98::SetBW(const RFM98::BW bw)
+{
+  return SetParam<BW, Register::ModemCfg1, 0xF0>(bw);
+}
+
+///////////////////////////////
+// CR GET/SET
+///////////////////////////////
+
+template<>
+bool RFM98::isvalid(const RFM98::CR cr) const
+{
+  switch(cr)
+  {
+    case RFM98::CR::k5:
+    case RFM98::CR::k6:
+    case RFM98::CR::k7:
+    case RFM98::CR::k8:
+      return true;
+    default:
+      return false;
+  }
+}
+
+RFM98::CR RFM98::GetCR() const
+{
+  return GetParam<CR, Register::ModemCfg1, 0x0E>();
+}
+
+bool RFM98::SetCR(const RFM98::CR cr)
+{
+  return SetParam<CR, Register::ModemCfg1, 0x0E>(cr);
+}
+
+///////////////////////////////
+// SF GET/SET
+///////////////////////////////
+
+template<>
+bool RFM98::isvalid(const RFM98::SF sf) const
+{
+  switch(sf)
+  {
+    case RFM98::SF::k64:
+    case RFM98::SF::k128:
+    case RFM98::SF::k256:
+    case RFM98::SF::k512:
+    case RFM98::SF::k1024:
+    case RFM98::SF::k2048:
+    case RFM98::SF::k4096:
+      return true;
+    default:
+      return false;
+  }
+}
+
+RFM98::SF RFM98::GetSF() const
+{
+  return GetParam<SF, Register::ModemCfg2, 0xF0>();
+}
+
+bool RFM98::SetSF(const RFM98::SF sf)
+{
+  return SetParam<SF, Register::ModemCfg2, 0xF0>(sf);
+}
+
+///////////////////////////////
+// HEADER MODE GET/SET
+///////////////////////////////
+
+template<>
+bool RFM98::isvalid(const RFM98::HeaderMode hm) const
+{
+  switch(hm)
+  {
+    case RFM98::HeaderMode::kImplicit:
+    case RFM98::HeaderMode::kExplicit:
+      return true;
+    default:
+      return false;
+  }
+}
+
+RFM98::HeaderMode RFM98::GetHeaderMode() const
+{
+  return GetParam<HeaderMode, Register::ModemCfg1, 0x01>();
+}
+
+bool RFM98::SetHeaderMode(const RFM98::HeaderMode hm)
+{
+  return SetParam<HeaderMode, Register::ModemCfg1, 0x01>(hm);
+}
+
+///////////////////////////////
+// TRANSMIT MODE GET/SET
+///////////////////////////////
+
+template<>
+bool RFM98::isvalid(const RFM98::TransmitMode tm) const
+{
+  switch(tm)
+  {
+    case RFM98::TransmitMode::kNormal:
+    case RFM98::TransmitMode::kContinuous:
+      return true;
+    default:
+      return false;
+  }
+}
+
+RFM98::TransmitMode RFM98::GetTransmitMode() const
+{
+  return GetParam<TransmitMode, Register::ModemCfg2, 0x08>();
+}
+
+bool RFM98::SetTransmitMode(const RFM98::TransmitMode tm)
+{
+  return SetParam<TransmitMode, Register::ModemCfg2, 0x08>(tm);
+}
+
+///////////////////////////////
+// CRC MODE GET/SET
+///////////////////////////////
+
+template<>
+bool RFM98::isvalid(const RFM98::CRCMode cm) const
+{
+  switch(cm)
+  {
+    case RFM98::CRCMode::kOff:
+    case RFM98::CRCMode::kOn:
+      return true;
+    default:
+      return false;
+  }
+}
+
+RFM98::CRCMode RFM98::GetCRCMode() const
+{
+  return GetParam<CRCMode, Register::ModemCfg2, 0x04>();
+}
+
+bool RFM98::SetCRCMode(const RFM98::CRCMode cm)
+{
+  return SetParam<CRCMode, Register::ModemCfg2, 0x04>(cm);
+}
+
+///////////////////////////////
+// DEVICE MODE GET/SET
+///////////////////////////////
+
+template<>
+bool RFM98::isvalid(const RFM98::DeviceMode mode) const
+{
+  switch(mode)
+  {
+    case RFM98::DeviceMode::kSleep:
+    case RFM98::DeviceMode::kStandby:
+    case RFM98::DeviceMode::kFsTx:
+    case RFM98::DeviceMode::kTx:
+    case RFM98::DeviceMode::kFsRx:
+    case RFM98::DeviceMode::kRxContinuous:
+    case RFM98::DeviceMode::kRxSingle:
+    case RFM98::DeviceMode::kCad:
+      return true;
+    default:
+      return false;
+  }
+}
+
+RFM98::DeviceMode RFM98::GetDeviceMode() const
+{
+  return GetParam<DeviceMode, Register::Mode, 0x07>();
+}
+
+bool RFM98::SetDeviceMode(const RFM98::DeviceMode mode)
+{
+  return SetParam<DeviceMode, Register::Mode, 0x07>(mode, false);
+}

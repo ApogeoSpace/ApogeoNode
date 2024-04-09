@@ -105,6 +105,14 @@ namespace ApogeoSpace
 		{
 
 		public:
+
+			/** Default Reset pin for the Lora Shield */
+			static constexpr uint8_t kDefault_RST_Pin{5U};
+			/** Default SS pin for the Lora Shield */
+			static constexpr uint8_t kDefault_SS_Pin{6U};
+			/** Default D0 pin for the Lora Shield */
+			static constexpr uint8_t kDefault_D0_Pin{3U};
+
 			/**
 			 * @brief Construct a new RFM98 object
 			 *
@@ -119,10 +127,221 @@ namespace ApogeoSpace
 
 			virtual bool IsTxDone() override;
 
-			static constexpr uint8_t kDefault_RST_Pin{5U};
-			static constexpr uint8_t kDefault_SS_Pin{6U};
-			static constexpr uint8_t kDefault_D0_Pin{3U};
+			enum class OperatingMode : uint8_t
+			{
+				kSleep = 0x00,		  /** Sleep mode */
+				kStandby = 0x01,	  /** Standby mode */
+				kFS_Tx = 0x02,		  /** Frequency synthesis - transmit*/
+				kTx = 0x03,			  /** Transmit mode */
+				kFS_Rx = 0x04,		  /** Frequency synthesis - receive*/
+				kRxContinuous = 0x05, /** Continuous receive mode */
+				kInvalid,
+			};
 
+			/**
+			 * @brief Get the current Operating Mode 
+			 * 
+			 * @return OperatingMode 
+			 */
+			OperatingMode GetOperatingMode() const;
+
+			/**
+			 * @brief Set the Operating Mode
+			 * 
+			 * @param mode 
+			 * @return true success
+			 * @return false set failed
+			 */
+			bool SetOperatingMode(const OperatingMode mode);
+
+			enum class LongRangeMode : uint8_t
+			{
+				kFSK = 0x00,
+				kLora = 0x80
+			};
+
+			enum class BW : uint8_t
+			{
+				k7_8kHz = 0x00,
+				k10_4kHz = 0x10,
+				k15_6kHz = 0x20,
+				k20_8kHz = 0x30,
+				k31_25kHz = 0x40,
+				k41_7kHz = 0x50,
+				k62_5kHz = 0x60,
+				k125kHz = 0x70,
+				k250kHz = 0x80,
+				k500kHz = 0x90,
+				kInvalid,
+			};
+
+			/**
+			 * @brief Get the current Bandwidth parameter
+			 * 
+			 * @return BW 
+			 */
+			BW GetBW() const;
+
+			/**
+			 * @brief Set the bandwidth parameter
+			 * 
+			 * @param bw 
+			 * @return true success
+			 * @return false set failed
+			 */
+			bool SetBW(const BW bw);
+
+			enum class CR : uint8_t
+			{
+				k5 = 0x02,
+				k6 = 0x04,
+				k7 = 0x06,
+				k8 = 0x08,
+				kInvalid,
+			};
+
+			/**
+			 * @brief Get the current Coding Rate
+			 * 
+			 * @return CR 
+			 */
+			CR GetCR() const;
+
+			/**
+			 * @brief Set the coding rate
+			 * 
+			 * @param cr 
+			 * @return true success
+			 * @return false set failed
+			 */
+			bool SetCR(const CR cr);
+
+			/* Expressed in chips (log2)*/
+			enum class SF : uint8_t
+			{
+				k64 = 0x60,		/*!< SF6 */
+				k128 = 0x70,	/*!< SF7 */
+				k256 = 0x80,	/*!< SF8 */
+				k512 = 0x90,	/*!< SF9 */
+				k1024 = 0xA0,	/*!< SF10 */
+				k2048 = 0xB0,	/*!< SF11 */
+				k4096 = 0xC0,	/*!< SF12 */
+				kInvalid,
+			};
+
+			/**
+			 * @brief 
+			 * 
+			 * @return SF 
+			 */
+			SF GetSF() const;
+
+			/**
+			 * @brief 
+			 * 
+			 * @param sf 
+			 * @return true success
+			 * @return false set failed
+			 */
+			bool SetSF(const SF sf);
+
+			enum class HeaderMode : uint8_t
+			{
+				kExplicit = 0x00,
+				kImplicit = 0x01,
+				kInvalid,
+			};
+
+			/**
+			 * @brief Get the Header Mode
+			 * 
+			 * @return HeaderMode 
+			 */
+			HeaderMode GetHeaderMode() const;
+
+			/**
+			 * @brief Set the Header Mode
+			 * 
+			 * @param mode 
+			 * @return true success
+			 * @return false set failed
+			 */
+			bool SetHeaderMode(const HeaderMode mode);
+
+			enum class TransmitMode : uint8_t
+			{
+				kNormal = 0x00,
+				kContinuous = 0x08,
+				kInvalid,
+			};
+
+			/**
+			 * @brief Get the Transmit Mode
+			 * 
+			 * @return TransmitMode 
+			 */
+			TransmitMode GetTransmitMode() const;
+
+			/**
+			 * @brief Set the Transmit Mode
+			 * 
+			 * @param mode 
+			 * @return true success
+			 * @return false set failed
+			 */
+			bool SetTransmitMode(const TransmitMode mode);
+
+			enum class CRCMode : uint8_t
+			{
+				kOff = 0x00,
+				kOn = 0x04,
+				kInvalid,
+			};
+
+			/**
+			 * @brief Get the current CRC mode
+			 * 
+			 * @return CRCMode 
+			 */
+			CRCMode GetCRCMode() const;
+
+			/**
+			 * @brief Set the CRC mode
+			 * 
+			 * @param mode 
+			 * @return true success
+			 * @return false set failed
+			 */
+			bool SetCRCMode(const CRCMode mode);
+
+			enum class DeviceMode : uint8_t
+			{
+				kSleep = 0x0,
+				kStandby = 0x1,
+				kFsTx = 0x2,
+				kTx = 0x3,
+				kFsRx = 0x4,
+				kRxContinuous = 0x5,
+				kRxSingle = 0x6,
+				kCad = 0x7,
+				kInvalid = 0xFF,
+			};
+
+			/**
+			 * @brief Get the Device Mode
+			 * 
+			 * @return DeviceMode 
+			 */
+			DeviceMode GetDeviceMode() const;
+
+			/**
+			 * @brief Set the Device Mode
+			 * 
+			 * @param mode 
+			 * @return true success
+			 * @return false set failed
+			 */
+			bool SetDeviceMode(const DeviceMode mode);
 
 		private:
 			/**
@@ -158,66 +377,6 @@ namespace ApogeoSpace
 				SimpleWrite = 0x80,
 			};
 
-			enum class OperatingMode : uint8_t
-			{
-				kSleep = 0x00,		  /** Sleep mode */
-				kStandby = 0x01,	  /** Standby mode */
-				kTx = 0x03,			  /** Transmit mode */
-				kRxContinuous = 0x05, /** Continuous receive mode */
-				kLora = 0x80		  /** Lora mode */
-			};
-
-			enum class BW : uint8_t
-			{
-				k7_8kHz = 0x00,
-				k10_4kHz = 0x10,
-				k15_6kHz = 0x20,
-				k20_8kHz = 0x30,
-				k31_25kHz = 0x40,
-				k41_7kHz = 0x50,
-				k62_5kHz = 0x60,
-				k125kHz = 0x70,
-				k250kHz = 0x80,
-				k500kHz = 0x90,
-			};
-
-			enum class CR : uint8_t
-			{
-				k5 = 0x02,
-				k6 = 0x04,
-				k7 = 0x06,
-				k8 = 0x08,
-			};
-
-			enum class SF : uint8_t
-			{
-				k64 = 0x60,
-				k128 = 0x70,
-				k256 = 0x80,
-				k512 = 0x90,
-				k1024 = 0xA0,
-				k2048 = 0xB0,
-				k4096 = 0xC0,
-			};
-
-			enum class HeaderMode : uint8_t
-			{
-				kExplicit = 0x00,
-				kImplicit = 0x01,
-			};
-
-			enum class TransmitMode : uint8_t
-			{
-				kNormal = 0x00,
-				kContinuous = 0x80
-			};
-
-			enum class CRCMode : uint8_t
-			{
-				kOff = 0x00,
-				kOn = 0x04,
-			};
-
 			/**
 			 * @brief Write a value to a register.
 			 *
@@ -246,6 +405,73 @@ namespace ApogeoSpace
 			 * @return uint8_t status
 			*/
 			uint8_t ReadBurst(const Register address, uint8_t * dest, uint8_t len) const;
+
+			/**
+			 * @brief Check that the given parameter belong to a valid range of values
+			 * 
+			 * @tparam P type of parameter
+			 * @param param input parameter
+			 * @return true value is valid
+			 * @return false parameter is out of range of admissible values
+			 */
+			template<typename P>
+			bool isvalid(const P param) const;
+
+			/**
+			 * @brief Generic parameter getter.
+			 * This queries the provided register and extracts the bits masked by @p mask,
+			 * then checks for validity of the resulting parameter
+			 * 
+			 * @tparam T type of parameter
+			 * @tparam reg target register to direct query to
+			 * @tparam mask bitmask for the given parameter
+			 * @return T T::kInvalid if an error occurred, a valid T value otherwise
+			 */
+			template<typename T, Register reg, uint8_t mask>
+			T GetParam() const
+			{
+				uint8_t val = ReadRegister(reg);
+				// Restrict to field width
+				T current_param = static_cast<T>(val & mask);
+				return isvalid(current_param) ? current_param : T::kInvalid;
+			}
+
+			/**
+			 * @brief Generic parameter setter.
+			 * This checks the input value, then checks the current param to assess connection status.
+			 * Then, the target register is given the new value, either by or-ing the original value, or by simply writing that parameter
+			 * to it
+			 * 
+			 * @tparam T type of parameter
+			 * @tparam reg target register to direct query to
+			 * @tparam mask bitmask for the given parameter
+			 * @param param input parameter
+			 * @param retain_reg if true, the register is written its original content + the new value in those bits corresponding to @p mask; 
+			 * if false, only the parameter as an u8 is sent
+			 * @return true Parameter was set successfully
+			 * @return false An error occurred
+			 */
+			template<typename T, Register reg, uint8_t mask>
+			bool SetParam(const T param, bool retain_reg = true)
+			{
+				if(not isvalid(param))
+				{
+					return false;
+				}
+
+				uint8_t orig_val = ReadRegister(reg);
+				T current_param = static_cast<T>(orig_val & mask);
+				if(not isvalid(current_param))
+				{
+					return false;
+				}
+
+				uint8_t new_val = (retain_reg ? (orig_val & ~mask ) : 0x00) | static_cast<uint8_t>(param);
+
+				// Verify is done only when retaining register content, otherwise this can fail depending on the register
+				return WriteRegister(reg, new_val, retain_reg);
+
+			}
 
 			uint8_t RST_Pin;
 			uint8_t SS_Pin;
