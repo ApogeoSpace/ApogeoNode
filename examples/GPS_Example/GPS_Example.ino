@@ -6,9 +6,9 @@
  * The hardware used for the demonstration is a generic u-blox NEO-8M module communicating
  * via UART @ 9600 baud, connected as below.
  * --------            ---------------
- * |    TX|____________|RX (3)       |
+ * |    TX|____________|RX (7)       |
  * | GPS  |            |       Node  |
- * |    RX|____________|TX (4)       |
+ * |    RX|____________|TX (8)       |
  * --------            ---------------
  * Once the receiver has a fix, it'll start parsing latitude and longitude data
  * and send them every 20". The UTC timestamp retrieved from the GPS data is also
@@ -49,8 +49,8 @@ const NodeKey key{
 // Create a node with the above credentials.
 APSNode node(id, key);
 
-// Create a GPS receiver connected to pin 3 (RX) and 4 (TX)
-SoftwareSerial GPS_Serial(3, 4);
+// Create a GPS receiver connected to pin 7 (RX) and 8 (TX)
+SoftwareSerial GPS_Serial(7, 8);
 APS_GNSS gnss(GPS_Serial);
 
 // Initialize the hardware (serial, radio etc.)
