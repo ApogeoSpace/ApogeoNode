@@ -28,7 +28,7 @@
 #include "APSLora.hpp"
 
 using namespace ApogeoSpace::Core::ustd;
-using type_traits::is_same, type_traits::is_pointer_type;
+using type_traits::is_same, type_traits::is_pointer_type, type_traits::static_all_of;
 
 namespace ApogeoSpace
 {
@@ -126,6 +126,58 @@ namespace ApogeoSpace
                 memset(payload, static_cast<uint8_t>(0U), sizeof(payload));
                 memcpy(payload, &value, sizeof(T));
                 return Send(payload, now);
+            }
+
+            /**
+             * @brief Transmit a series of values via radio. The provided values can be of any type,
+             * as long as the sum of their sizes fits in the maximum allowed size for payloads.
+             * Use this function to send numerical values, characters, sensor readings, etc.
+             * 
+             * In the resulting payload, the values will be packed (depending on platform endianness) one after the other.
+             * 
+             * @example
+             * uint8_t a = 1;
+             * char b = 'k';
+             * uint32_t c = 0xDEADBEEF
+             * 
+             * Payload size : 10
+             * Platform: Arduino R3, standard C++ compiler shipped with Arduino IDE
+             * 
+             * Send(a, b, c)
+             * 
+             * a_______________    b    c______________________
+             *                |    |    |        |      |      |
+             *                v    v    v        v      v      v
+             * Payload :    | 1 | 'k' | 0xEF | 0xBE | 0xAD | 0xDE | 0 | 0 | 0 | 0 |
+             *                0                                                    9
+             * @tparam Ts 
+             * @param args 
+             * @param now 
+             */
+            template<class ... Ts>
+            static void Pack(Crypto::Payload_t& pl, const Ts&... args)
+            {
+                static_assert(
+                    (sizeof(args) + ... + 0)<=sizeof(Crypto::Payload_t), 
+                    "Provided arguments exceed the available space for the packet"
+                );
+                static_assert(
+                    static_all_of<not is_same<Ts, const char*>::value...>::value, 
+                    "Please use ::SendString when dealing with char* variables (C-style string literals)"
+                );
+                static_assert(
+                    static_all_of<not is_same<Ts, char*>::value...>::value, 
+                    "Please use ::SendString when dealing with char* variables (C-style strings)"
+                );
+                static_assert(
+                    static_all_of<not is_pointer_type<Ts>::value...>::value, 
+                    "Please use ::SendStream when dealing with non-string pointers to memory."
+                );
+
+                memset(pl, 0U, sizeof(pl));
+                
+                size_t offset = 0;
+                pack_args_impl(pl, offset, args...);
             }
 
             /**
@@ -238,6 +290,36 @@ namespace ApogeoSpace
             {return Radio;}
 
         private:
+
+            /**
+             * @brief Helper function for :: Pack to update the offset to copy 
+             * a given argument into  the target buffer 
+             * 
+             * @tparam T argument type
+             * @param offset reference to offset
+             */
+            template<typename T>
+            static void add_offset(size_t& offset, const T&) {
+                offset += sizeof(T);
+            }
+
+            /**
+             * @brief Recursion base for the pack_args_impl function
+             * 
+             * @param buff 
+             * @param offset 
+             */
+            static void pack_args_impl(uint8_t* buff, size_t& offset) {
+                // do nothing
+            }
+
+            template<typename T, typename... Args>
+            static void pack_args_impl(uint8_t* buff, size_t& offset, const T& arg, const Args&... args) {
+                memcpy(buff + offset, &arg, sizeof(T));
+                add_offset(offset, arg);
+                pack_args_impl(buff, offset, args...);
+            }
+
             class Crypto::SecureNode SecureNode;
             LoRa::RFM98 Radio;
         };

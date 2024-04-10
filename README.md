@@ -166,6 +166,53 @@ memcpy(pl, myInt, sizeof(myInt));
 node.Send(pl);
 
 ```
+
+#### Sending multiple packed values with `::Pack` and `::Send`
+
+If you need to send more variable at once by packing them all together, you can use the `::Pack` function to build a single payload that you can then send via the standard `::Send` function described above.
+
+```c++
+uint8_t a = 1;
+char b = 'k';
+uint32_t c = 0xDEADBEEF;
+
+// You have to declare a Payload to use with the Pack function
+Payload pl;
+
+// The byte limit of the payload is ensured at compile time
+node.Pack(pl, a, b, c);
+
+// E.g. with a payload of 10 bytes, the following code would not compile:
+// uint64_t big_chunk_1 = 0x0011223344556677;
+// uint64_t big_chunk_2 = 0x8899AABBCCDDEEFF;
+// node.Pack(pl, big_chunk_1, big_chunk_2); // <--- will refuse to compile
+
+// You can then send the payload with an ordinary ::Send.
+node.Send(pl);
+
+```
+
+##### Note on endianness
+
+Since the underlying implementation of `::Pack` simply copies the variables byte by byte into the array, you have to make sure of the endianness of the system you're using when rebuilding entities larger than 1 byte at the receiver.
+
+```c++
+// Consider the payload built above, and an ordinary Arduino R3 platform with the standard compiler built into the IDE
+for (const auto & c : pl)
+{
+    Serial.print(c, HEX);
+    Serial.print(", ");
+}
+// ^^^^^^^^^^^^^^^^^^^^^ This would produce the following output with a 10-byte wide payload
+//  1, 6B, EF, BE, AD, DE, 0, 0, 0, 0
+//                     ^-------------------- note the position of the MSB w.r.t. the start of the payload.
+```
+
+##### Note on usage with pointers
+
+`::Pack` can only work with primitive types and **POD**s; it won't work with, e.g., an integer and an array of 4 bytes. To accomplish that, either consider sending the non-pointer types with `::Pack`+`::Send` or simply `::Send` and then using the other functions described in the paragraphs below; or fill a `Payload` manually with the data you wish to send.
+
+
 #### Sending raw memory with `::SendStream`
 
 By design, `::Send` cannot be used to deal with pointers. If you have a pointer to an area of memory and want to send its content, you can use `::SendStream` instead, by passing the pointer itself and the amount of bytes you want to copy over to the payload.

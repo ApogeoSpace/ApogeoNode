@@ -126,6 +126,19 @@ namespace ApogeoSpace
                 {
                     return is_pointer_type<T>::value;
                 }
+
+                template <bool... b> struct static_all_of;
+
+                // do recursion if the first argument is true
+                template <bool... tail>
+                struct static_all_of<true, tail...> : static_all_of<tail...> {};
+
+                // end recursion if first argument is false
+                template <bool... tail>
+                struct static_all_of<false, tail...> : false_type {};
+
+                // end recursion if no more arguments need to be processed
+                template <> struct static_all_of<> : true_type {};
             }
         }
     }
