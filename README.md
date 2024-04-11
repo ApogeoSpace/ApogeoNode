@@ -117,7 +117,7 @@ For example, if your configuration differs from the one above in the following w
 
 Then you'd need to instantiate the APSNode object in the following way:
 
-```c++
+```cpp
 //                         RST     SS      D0
 APSNode node(id, key,       5,     10,     2);
 ```
@@ -130,7 +130,7 @@ The library provides the `::Send`, `::SendString` and `::SendStream` APIs to tra
 
 The `::Send` function can deal with either `Payload` variables or any non-pointer type, as long as its size does not exceed the allowable length of the payload.
 
-```c++
+```cpp
 
 /* When applicable, using basic types with ::Send instead of converting them to a Payload type is more convenient
     and user-friendly.
@@ -171,7 +171,7 @@ node.Send(pl);
 
 If you need to send more variable at once by packing them all together, you can use the `::Pack` function to build a single payload that you can then send via the standard `::Send` function described above.
 
-```c++
+```cpp
 uint8_t a = 1;
 char b = 'k';
 uint32_t c = 0xDEADBEEF;
@@ -196,7 +196,7 @@ node.Send(pl);
 
 Since the underlying implementation of `::Pack` simply copies the variables byte by byte into the array, you have to make sure of the endianness of the system you're using when rebuilding entities larger than 1 byte at the receiver.
 
-```c++
+```cpp
 // Consider the payload built above, and an ordinary Arduino R3 platform with the standard compiler built into the IDE
 for (const auto & c : pl)
 {
@@ -217,7 +217,7 @@ for (const auto & c : pl)
 
 By design, `::Send` cannot be used to deal with pointers. If you have a pointer to an area of memory and want to send its content, you can use `::SendStream` instead, by passing the pointer itself and the amount of bytes you want to copy over to the payload.
 
-```c++
+```cpp
 
 uint8_t* ptr = new uint8_t[10]{};
 
@@ -229,7 +229,7 @@ node.SendStream(ptr, 10);
 
 Note that this is still subjected to the limitation of the Payload size!
 
-```c++
+```cpp
 
 uint8_t* ptr = new uint8_t[20]{};
 
@@ -245,7 +245,7 @@ node.SendStream(ptr, 20);   // --> will return false and not transmit anything
 
 Sending strings is **not** particularly recommended, however you can still do it by means of `::SendString`. This function deals with **NULL-terminated** strings and string literals, and builds a Payload by copying in character by character.
 
-```c++
+```cpp
 
 const char * str1 {"Hello"};
 
