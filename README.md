@@ -12,37 +12,39 @@ To correctly use this library, the following support libraries must also be inst
 
 Unless stated otherwise, these libraries can be found in the Arduino IDE library manager.
 
+### Via the Arduino Library Manager
+
+Simply look fort `APSNode` in the Arduino Library Manager in your IDE of choice (e.g. Arduino IDE 1/2, VSCode, etc.) and install it.
+
 ### Manual installation
 To install this library, just place this entire folder as a subfolder in your
 Arduino/libraries folder. You usually find the *libraries* folder in the sketch folder.
 
-When installed, this library should look like:
+When installed, the folder structure should look like this:
 
-> \<Arduino Sketches\>/libraries/ApsNode
+> \<Arduino Sketches\>/libraries/**ApsNode**
 >
-> \<Arduino Sketches\>/libraries/ApsNode/APSNode.hpp
+> \<Arduino Sketches\>/libraries/ApsNode/**src**/APSNode.hpp
 > 
-> \<Arduino Sketches\>/libraries/ApsNode/APSCrypto.cpp
->
-> \<Arduino Sketches\>/libraries/ApsNode/APSCrypto.hpp
->
-> \<Arduino Sketches\>/libraries/ApsNode/APSLora.cpp
->
-> \<Arduino Sketches\>/libraries/ApsNode/APSLora.hpp
+> \<Arduino Sketches\>/libraries/ApsNode/**src**/APSCore.hpp
 > 
-> \<Arduino Sketches\>/libraries/ApsNode/keywords.txt
+> \<Arduino Sketches\>/libraries/ApsNode/**src**/...
 >
-> \<Arduino Sketches\>/libraries/ApsNode/examples
+> \<Arduino Sketches\>/libraries/ApsNode/**docs**
 >
-> \<Arduino Sketches\>/libraries/ApsNode/readme.md   (this file)
+> \<Arduino Sketches\>/libraries/ApsNode/**examples**
+>
+> \<Arduino Sketches\>/libraries/ApsNode/**README.md** *(this file)*
+> 
+> \<Arduino Sketches\>/libraries/ApsNode/...
 
 --------------------------------------------------------------------------------
 
 ## Basic Usage
 
-Please refer to the **examples** folder for more information on how to use this library.
+Please refer to the **examples** folder for a quick and basic reference on how to get started with this library.
 At a quick glance, here's how you can send data with your credentials.
-The same code is found under examples/SimpleNode
+The same code is found under **examples/SimpleNode**
 
 ```cpp
 #include "APSNode.hpp"
